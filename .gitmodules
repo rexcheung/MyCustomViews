@@ -1,0 +1,3 @@
+[submodule "commonLib"]
+	path = commonLib
+	url = https://github.com/rexcheung/commonlib.git
