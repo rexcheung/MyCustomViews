@@ -9,7 +9,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
-public class GridView extends View {
+public abstract class GridView extends View {
     private Paint mPaint;
     protected Point mCenterPoint;
     protected final int UNIT_INTERVAL = 15;
@@ -25,7 +25,7 @@ public class GridView extends View {
     public GridView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mPaint = new Paint();
-        mPaint.setColor(getContext().getResources().getColor(android.R.color.black));
+        mPaint.setColor(getContext().getResources().getColor(android.R.color.darker_gray));
         mPaint.setStyle(Paint.Style.FILL);
     }
 
@@ -88,6 +88,42 @@ public class GridView extends View {
         canvas.drawCircle(mCenterPoint.x, mCenterPoint.y, 5, mPaint);
     }
 
+    private int percent = 0;
+    private Runnable moveCenterRunable = new Runnable() {
+
+        @Override
+        public void run() {
+            int centerX = getWidth() / 2;
+            if (percent == 0) {
+                mCenterPoint.x = centerX;
+            }  else {
+                mCenterPoint.x = centerX + centerX * percent / 100;
+                Log.i("X = ", mCenterPoint.x + "");
+            }
+
+            if (!onPointChange()) {
+                invalidate();
+            }
+
+        }
+    };
+
+    /**
+     * 移动X坐标
+     * 接受正负值 -100 到 100
+     * 负为左移
+     * 正为右移
+     */
+    public void moveCenterX(int percent) {
+        if (percent < -100 || percent > 100) {
+            return;
+        }
+
+        removeCallbacks(moveCenterRunable);
+        this.percent = percent;
+        postDelayed(moveCenterRunable, 200);
+    }
+
     public Point getCenterPoint() {
         return mCenterPoint;
     }
@@ -96,4 +132,6 @@ public class GridView extends View {
         return UNIT_INTERVAL;
     }
 
+
+    abstract boolean onPointChange();
 }

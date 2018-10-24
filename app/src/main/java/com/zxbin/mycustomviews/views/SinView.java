@@ -4,13 +4,14 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 
+import java.security.cert.TrustAnchor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class SinView extends GridView {
@@ -44,31 +45,47 @@ public class SinView extends GridView {
         }
     }
 
-    public void setDatas(@NonNull List<Double> points) {
-        if (points.size() == 0) {
+    @Override
+    boolean onPointChange() {
+        ArrayList<Double> list = new ArrayList<>(this.points);
+        setDatas(list);
+        return true;
+    }
+
+    public void setDatas(@NonNull final List<Double> pointList) {
+        if (pointList.size() == 0) {
             return;
         }
 
-        this.points.clear();
-        this.points.addAll(points);
-        mPath.reset();
-        if (mPath.isEmpty()) {
-            Log.i("mPath", "is Empty");
-        }
 
-        int x = mCenterPoint.x;
-        for (Double y : points) {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                calPath(pointList);
+                return null;
+            }
+        }.execute();
+
+        this.invalidate();
+    }
+
+    private void calPath(@NonNull List<Double> pointList) {
+        this.points.clear();
+        this.points.addAll(pointList);
+        mPath.reset();
+
+        int startX = mCenterPoint.x;
+        int x = startX;
+        for (Double y : pointList) {
             double yAxle = y / 0.1 * UNIT_INTERVAL;
             float yPoint = ((float) yAxle) * -1 + mCenterPoint.y;
 
             // 移动到中心，否则会从0，0开始连线
-            if (x == mCenterPoint.x) {
-                mPath.moveTo(mCenterPoint.x, mCenterPoint.y);
+            if (x == startX) {
+                mPath.moveTo(startX, mCenterPoint.y);
             }
             mPath.lineTo(x, yPoint);
-            x += 15;
+            x += 25;
         }
-
-        this.invalidate();
     }
 }
